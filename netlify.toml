@@ -2,7 +2,9 @@
 [build]
   command = "npm run build:netlify"
   publish = "out"
-  functions = "netlify/functions"
+
+[functions]
+  directory = "netlify/functions"
 
 # Redirect all to index.html for single-page app behavior
 [[redirects]]
