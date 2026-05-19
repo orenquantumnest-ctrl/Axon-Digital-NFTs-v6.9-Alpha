@@ -1,0 +1,11 @@
+# Netlify configuration for Axon Digital NFTs Admin
+[build]
+  command = "npm run build:netlify"
+  publish = "out"
+  functions = "netlify/functions"
+
+# Redirect all to index.html for single-page app behavior
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
