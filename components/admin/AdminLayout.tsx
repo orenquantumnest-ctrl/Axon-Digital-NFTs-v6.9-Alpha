@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, Users, ArrowDownToLine, ArrowUpFromLine, Package, 
-  ListOrdered, Network, Bell, ShieldAlert, ShieldCheck, Settings, LogOut, Menu, X, Activity, Lock, Search, Loader2
+  ListOrdered, Network, Bell, ShieldAlert, ShieldCheck, Settings, LogOut, Menu, X, Activity, Lock, Search, Loader2, Database
 } from 'lucide-react';
 import { useRole } from '@/components/admin/RoleContext';
 import { supabase } from '@/lib/supabase';
@@ -93,20 +93,18 @@ export function AdminLayout({
 
   const navLinks = [
     { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
+    { href: '/admin/database', label: 'Database', icon: Database },
     { href: '/admin/users', label: 'Users', icon: Users },
-    { href: '/admin/deposits', label: 'Deposits', icon: ArrowDownToLine },
-    { href: '/admin/withdrawals', label: 'Withdrawals', icon: ArrowUpFromLine },
-    { href: '/admin/plans', label: 'Plans', icon: Package },
-    { href: '/admin/transactions', label: 'Transactions', icon: ListOrdered },
+    { href: '/admin/nfts', label: 'NFTs', icon: Package },
     { href: '/admin/referrals', label: 'Referrals', icon: Network },
-    { href: '/admin/fraud', label: 'Fraud Engine', icon: ShieldAlert },
-    { href: '/admin/notifications', label: 'Signals', icon: Bell },
-    { href: '/admin/audit', label: 'Audit Replay', icon: Activity },
+    { href: '/admin/audit', label: 'Audit Logs', icon: Activity },
+    { href: '/admin/security', label: 'Security', icon: ShieldAlert },
+    { href: '/admin/transactions', label: 'Transactions', icon: ListOrdered },
     { href: '/admin/roles', label: 'RBAC Roles', icon: ShieldCheck },
-    { href: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
-  const authorized = hasAccess(pathname) || pathname === '/admin/login';
+  const authorized = hasAccess(pathname || '') || pathname === '/admin/login';
+  const safePathname = pathname || '';
 
   return (
     <div className="flex h-screen w-full bg-[#050505] font-sans text-slate-200 overflow-hidden">
@@ -122,7 +120,7 @@ export function AdminLayout({
           <Link href="/admin" className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="https://axondigitalnfts.com/images/axon-logo-icon.png" alt="AXON" className="w-full h-full object-cover" />
+              <img src="/axon-logo-icon.png" alt="AXON" className="w-full h-full object-cover" />
             </div>
             <div>
               <strong className="block text-white tracking-widest text-sm">AXON ADMIN</strong>
@@ -135,7 +133,7 @@ export function AdminLayout({
         </div>
         <nav className="flex-1 px-4 space-y-1.5 mt-4 overflow-y-auto custom-scrollbar">
           {navLinks.filter(l => hasAccess(l.href)).map((link) => {
-            const isActive = link.exact ? pathname === link.href : pathname.startsWith(link.href);
+            const isActive = link.exact ? safePathname === link.href : safePathname.startsWith(link.href);
             return (
               <Link 
                 key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}

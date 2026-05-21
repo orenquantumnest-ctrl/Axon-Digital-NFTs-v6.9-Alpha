@@ -10,7 +10,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 relative rounded-xl overflow-hidden shadow-[0_0_15px_rgba(0,255,178,0.2)]">
               <Image
-                src="https://axondigitalnfts.com/images/axon-logo-icon.png"
+                src="/axon-logo-icon.png"
                 alt="AXON Digital NFTs"
                 fill
                 className="object-cover"
@@ -102,7 +102,7 @@ export default function Home() {
           <div className="relative">
             <div className="relative w-full aspect-square md:aspect-video lg:aspect-square rounded-[3rem] overflow-hidden border border-white/10 shadow-[0_30px_100px_-20px_rgba(0,0,0,0.8)] z-10 transform lg:rotate-3 lg:hover:rotate-0 transition-transform duration-700">
               <Image
-                src="https://axondigitalnfts.com/images/free-nft-plan.jpeg"
+                src="/free-nft-plan.jpeg"
                 alt="Free NFT Plan"
                 fill
                 className="object-cover"
@@ -144,7 +144,7 @@ export default function Home() {
 
           <div className="relative w-full max-w-4xl mx-auto aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
             <Image
-              src="https://axondigitalnfts.com/images/axon-share-card.png"
+              src="/axon-share-card.png"
               alt="AXON Architecture"
               fill
               className="object-contain bg-[#121212]"

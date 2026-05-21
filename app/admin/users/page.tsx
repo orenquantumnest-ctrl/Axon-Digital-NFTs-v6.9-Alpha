@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { supabase, ProfileRow } from "@/lib/supabase";
 import {
   Search,
   Filter,
@@ -12,59 +13,45 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-const USERS = [
-  {
-    id: "1",
-    email: "alex.rivera@example.com",
-    username: "alexr_01",
-    balance: "2,450 USDT",
-    role: "user",
-    status: "verified",
-    joined: "Oct 24, 2023",
-  },
-  {
-    id: "2",
-    email: "crypto.whale99@example.com",
-    username: "whale99",
-    balance: "45,210 USDT",
-    role: "user",
-    status: "verified",
-    joined: "Nov 12, 2023",
-  },
-  {
-    id: "3",
-    email: "s.jenkins@corp.com",
-    username: "sjenkins",
-    balance: "0 USDT",
-    role: "user",
-    status: "pending",
-    joined: "Jan 05, 2024",
-  },
-  {
-    id: "4",
-    email: "admin_sys@axonnfts.com",
-    username: "sysadmin",
-    balance: "N/A",
-    role: "admin",
-    status: "verified",
-    joined: "Jan 01, 2023",
-  },
-  {
-    id: "5",
-    email: "banned.user@scammer.com",
-    username: "scammer42",
-    balance: "0.00 USDT",
-    role: "user",
-    status: "banned",
-    joined: "Feb 14, 2024",
-  },
-];
-
 export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [users, setUsers] = useState<ProfileRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (data && !error) {
+          setUsers(data as ProfileRow[]);
+        } else {
+          console.error("Supabase fetch users error:", error);
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUsers();
+  }, []);
+
+  const filteredUsers = users.filter((u) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      (u.email || "").toLowerCase().includes(q) ||
+      (u.username || "").toLowerCase().includes(q) ||
+      (u.id || "").toLowerCase().includes(q) ||
+      (u.wallet_address || "").toLowerCase().includes(q)
+    );
+  });
+
+  const getStatusBadge = (status?: string) => {
+    const s = (status || "verified").toLowerCase();
+    switch (s) {
       case "verified":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-[#00FFB2]/10 text-[#00FFB2] border border-[#00FFB2]/20">
@@ -111,96 +98,112 @@ export default function AdminUsersPage() {
           </button>
         </div>
         <div className="text-sm text-slate-400">
-          Total Users: <strong className="text-white">1,248</strong>
+          Total Users: <strong className="text-white">{users.length}</strong>
         </div>
       </div>
 
       <div className="bg-[#121212]/60 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden relative">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/5">
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  User ID
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  Account Profile
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  Balance
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  Status / Role
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  Joined Date
-                </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {USERS.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-white/[0.02] transition-colors group"
-                >
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span className="text-xs font-mono text-slate-500">
-                      #{user.id.padStart(5, "0")}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-white font-bold text-sm">
-                        {user.username.substring(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-white">
-                          {user.username}
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          {user.email}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-sm font-mono text-[#D4AF37]">
-                    {user.balance}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <div className="flex flex-col items-start gap-2">
-                      {getStatusBadge(user.status)}
-                      {user.role === "admin" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                          <Shield className="w-3 h-3" /> Admin
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-sm text-slate-400">
-                    {user.joined}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="w-8 h-8 rounded-lg outline-none bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="w-8 h-8 rounded-lg outline-none bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+        <div className="overflow-x-auto min-h-[300px]">
+          {loading ? (
+            <div className="flex items-center justify-center h-[300px] text-[#D4AF37]">
+              Loading...
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/5">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                    User
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                    Wallet Address
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                    Total Rewards
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                    Status / Role
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                    Joined Date
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                      No users found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-white/[0.02] transition-colors group"
+                    >
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              (user.username || user.email || "??").substring(0, 2).toUpperCase()
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-bold text-white">
+                              {user.username || "Unknown"}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {user.email || "No email"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-xs font-mono text-slate-500">
+                        {user.wallet_address || "N/A"}
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-sm font-mono text-[#D4AF37]">
+                        {user.total_rewards || 0} USDT
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex flex-col items-start gap-2">
+                          {getStatusBadge("verified")}
+                          {user.role === "ADMIN" && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                              <Shield className="w-3 h-3" /> Admin
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-sm text-slate-400">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="w-8 h-8 rounded-lg outline-none bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button className="w-8 h-8 rounded-lg outline-none bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
         <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
           <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">
-            Showing 1 to 5 of 1,248
+            Showing {filteredUsers.length} of {users.length}
           </span>
           <div className="flex items-center gap-2">
             <button className="px-4 py-2 bg-[#121212] border border-white/10 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
