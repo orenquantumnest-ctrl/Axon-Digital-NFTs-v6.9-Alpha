@@ -1,6 +1,6 @@
 {
-  "name": "AXON DIGITAL NFTs Admin Portal",
-  "description": "Premium NFT ecosystem brand admin dashboard.",
+  "name": "AXON DIGITAL NFTs",
+  "description": "The premium futuristic NFT ecosystem for elite digital asset ownership with liquid glass aesthetics.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
