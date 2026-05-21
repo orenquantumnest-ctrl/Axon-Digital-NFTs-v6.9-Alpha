@@ -6,8 +6,10 @@ import {
   LineChart,
   DoughnutChart,
   RadarChart,
+  PieChart,
 } from "@/components/admin/Charts";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { motion } from "motion/react";
 import {
   Users,
   BarChart2,
@@ -24,6 +26,7 @@ import {
 
 export default function AdminDashboardPage() {
   const [filter, setFilter] = useState("24h");
+  const [showTokenSnackbar, setShowTokenSnackbar] = useState(false);
 
   const [data, setData] = useState<any>({
     traffic: [65, 59, 80, 81, 56, 90, 110],
@@ -393,17 +396,73 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* System Load Radar */}
-        <div className="col-span-1 row-span-2 bg-[#121212]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 flex flex-col min-h-[250px]">
+        {/* AXON TOKEN ALLOCATION PIE-CHART CARD */}
+        <div 
+          onClick={() => {
+            setShowTokenSnackbar(true);
+            setTimeout(() => setShowTokenSnackbar(false), 5000);
+          }}
+          onMouseEnter={() => setShowTokenSnackbar(true)}
+          onMouseLeave={() => setShowTokenSnackbar(false)}
+          className="col-span-1 row-span-2 bg-[#121212]/60 backdrop-blur-xl border border-[#D4AF37]/20 hover:border-[#00FFB2]/50 rounded-3xl p-6 flex flex-col min-h-[300px] transition-all cursor-pointer relative group/token"
+        >
+          <div className="absolute top-3 right-3 bg-[#00FFB2]/10 text-[#00FFB2] text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[#00FFB2]/20">
+            Pie-Chart Matrix
+          </div>
+
           <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-4 h-4 text-slate-400" />
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-              Fraud Monitor
+            <Zap className="w-4 h-4 text-[#D4AF37] group-hover/token:text-[#00FFB2] transition-colors" />
+            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest">
+              AXON Token Allocation
             </h3>
           </div>
-          <div className="flex-1 relative w-full h-full min-h-[140px] flex items-center justify-center mt-2">
-            <RadarChart data={radarData} options={radarOptions} />
+
+          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">
+            Total Supply: 50,000 Units
+          </p>
+
+          <div className="flex-1 relative w-full h-full min-h-[140px] flex items-center justify-center">
+            <PieChart 
+              data={{
+                labels: ["Ecosystem Rewards", "Liquidity Pool", "Core Contributors", "Marketing", "Pre-seed"],
+                datasets: [
+                  {
+                    data: [20000, 15000, 7500, 5000, 2500],
+                    backgroundColor: ["#00FFB2", "#D4AF37", "#a855f7", "#3b82f6", "#e2e8f0"],
+                    borderWidth: 1,
+                    borderColor: "rgba(0,0,0,0.5)"
+                  }
+                ]
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false }
+                }
+              }}
+            />
           </div>
+
+          <div className="mt-4 border-t border-white/5 pt-3">
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+              <strong>AXON Tokenomics:</strong> Elevating Web3 loyalty and digital staking. High hopes run rampant for our official launcher shortly on <strong>BNB Smart Chain (BEP20)</strong> or <strong>Base</strong>.
+            </p>
+          </div>
+
+          {/* Coming Soon Snack Nav Message Popup Overlay */}
+          {showTokenSnackbar && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="absolute inset-x-4 bottom-4 z-50 bg-[#0A0A0A] border border-[#00FFB2] rounded-2xl p-4 shadow-2xl backdrop-blur-2xl text-center"
+            >
+              <span className="text-[#00FFB2] text-xs font-bold uppercase tracking-widest block mb-1">Coming Soon!</span>
+              <p className="text-[11px] text-white leading-normal font-sans">
+                AXON Token distribution is under active blockchain optimization. Fully available upon official token creation on BNB Smart Chain or Base!
+              </p>
+            </motion.div>
+          )}
         </div>
       </div>
     </AdminLayout>
