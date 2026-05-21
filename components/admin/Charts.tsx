@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -71,22 +72,52 @@ const defaultOptions: ChartOptions<any> = {
   }
 };
 
-export const BarChart = ({ data, options }: { data: any, options?: ChartOptions<'bar'> }) => (
-  <Bar data={data} options={options || defaultOptions} />
-);
+export const BarChart = ({ data, options }: { data: any, options?: ChartOptions<'bar'> }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+  if (!mounted) return <div className="w-full h-full bg-[#121212]/30 animate-pulse rounded-2xl" />;
+  return <Bar data={data} options={options || defaultOptions} />;
+};
 
-export const LineChart = ({ data, options }: { data: any, options?: ChartOptions<'line'> }) => (
-  <Line data={data} options={options || defaultOptions} />
-);
+export const LineChart = ({ data, options }: { data: any, options?: ChartOptions<'line'> }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+  if (!mounted) return <div className="w-full h-full bg-[#121212]/30 animate-pulse rounded-2xl" />;
+  return <Line data={data} options={options || defaultOptions} />;
+};
 
-export const PieChart = ({ data, options }: { data: any, options?: ChartOptions<'pie'> }) => (
-  <Pie data={data} options={options || { responsive: true }} />
-);
+export const PieChart = ({ data, options }: { data: any, options?: ChartOptions<'pie'> }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+  if (!mounted) return <div className="w-full h-full bg-[#121212]/30 animate-pulse rounded-2xl" />;
+  return <Pie data={data} options={options || { responsive: true }} />;
+};
 
-export const RadarChart = ({ data, options }: { data: any, options?: ChartOptions<'radar'> }) => (
-  <Radar data={data} options={options || { responsive: true }} />
-);
+export const RadarChart = ({ data, options }: { data: any, options?: ChartOptions<'radar'> }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+  if (!mounted) return <div className="w-full h-full bg-[#121212]/30 animate-pulse rounded-2xl" />;
+  return <Radar data={data} options={options || { responsive: true }} />;
+};
 
-export const DoughnutChart = ({ data, options }: { data: any, options?: ChartOptions<'doughnut'> }) => (
-  <Doughnut data={data} options={options || { responsive: true }} />
-);
+export const DoughnutChart = ({ data, options }: { data: any, options?: ChartOptions<'doughnut'> }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+  if (!mounted) return <div className="w-full h-full bg-[#121212]/30 animate-pulse rounded-2xl" />;
+  return <Doughnut data={data} options={options || { responsive: true }} />;
+};
