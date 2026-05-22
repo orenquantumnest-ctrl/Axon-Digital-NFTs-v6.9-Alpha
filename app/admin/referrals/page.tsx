@@ -1,186 +1,146 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Search, Filter, Network, TrendingUp, Users, ShieldAlert, Activity } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { useState } from "react";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { GlowButton } from "@/components/ui/GlowButton";
+import { 
+  Layers, Trophy, Search, CheckCircle, RefreshCcw, Star,
+  TrendingUp, Users, Percent, Gift
+} from "lucide-react";
 
-export default function AdminReferralsPage() {
-  const [referrals, setReferrals] = useState<any[]>([]);
-  const [metrics, setMetrics] = useState({
-    totalNetwork: 0,
-    commissionsPaid: 0,
-    activeReferrers: 0
-  });
-  const [loading, setLoading] = useState(true);
+interface ReferralAccount {
+  id: string;
+  refCode: string;
+  associatedWallet: string;
+  successfulInvites: number;
+  unlimitedBonusRatio: number; // in percent
+  commissionsPaidEth: string;
+  status: "Bronze Tier" | "Silver Syndicate" | "Gold Oracle Elite";
+}
 
-  const fetchReferralsData = async () => {
-    setLoading(true);
-    
-    // Fetch live referrals network
-    const { data: refData } = await supabase
-      .from('referrals')
-      .select('*, referrer:profiles!referrals_referrer_id_fkey(email, wallet_address), referred:profiles!referrals_referred_id_fkey(email, wallet_address)')
-      .order('created_at', { ascending: false });
-      
-    // Fetch aggregated rewards
-    const { data: rewardsData } = await supabase
-      .from('referral_rewards')
-      .select('amount, is_paid');
+const INITIAL_REFS: ReferralAccount[] = [
+  { id: "REF-001", refCode: "AXON-ALPHA", associatedWallet: "0x44c33...22bf", successfulInvites: 54, unlimitedBonusRatio: 10, commissionsPaidEth: "14.22 ETH", status: "Gold Oracle Elite" },
+  { id: "REF-012", refCode: "GOLDEN-YIELD", associatedWallet: "0xab17a...8831", successfulInvites: 22, unlimitedBonusRatio: 7, commissionsPaidEth: "4.85 ETH", status: "Silver Syndicate" },
+  { id: "REF-088", refCode: "STAKE-PRO", associatedWallet: "0xf11ad...d3a0", successfulInvites: 8, unlimitedBonusRatio: 5, commissionsPaidEth: "0.91 ETH", status: "Bronze Tier" },
+  { id: "REF-109", refCode: "ORACLE-GEN", associatedWallet: "0x98fcf...99aa", successfulInvites: 41, unlimitedBonusRatio: 10, commissionsPaidEth: "11.04 ETH", status: "Gold Oracle Elite" }
+];
 
-    const networkSize = refData?.length || 0;
-    const paidSum = rewardsData?.filter(r => r.is_paid).reduce((acc, r) => acc + (r.amount || 0), 0) || 0;
-    
-    // Unique referrers
-    const uniqueIds = new Set(refData?.map(r => r.referrer_id));
+export default function ReferralsAdmin() {
+  const [refs, setRefs] = useState<ReferralAccount[]>(INITIAL_REFS);
+  const [alert, setAlert] = useState("");
 
-    setMetrics({
-      totalNetwork: networkSize,
-      commissionsPaid: paidSum,
-      activeReferrers: uniqueIds.size
-    });
-
-    setReferrals(refData || []);
-    setLoading(false);
+  const handleUpdateBonus = (id: string, ratio: number) => {
+    setRefs(prev => prev.map(r => {
+      if (r.id === id) {
+        return { ...r, unlimitedBonusRatio: ratio };
+      }
+      return r;
+    }));
+    setAlert(`Adjusted bonus ratio to ${ratio}% for Syndicate Partner ${id}.`);
   };
 
-  useEffect(() => {
-    fetchReferralsData();
-
-    const sub = supabase.channel('referrals-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'referrals' }, fetchReferralsData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'referral_rewards' }, fetchReferralsData)
-      .subscribe();
-
-    return () => { supabase.removeChannel(sub); };
-  }, []);
-
   return (
-    <AdminLayout
-      pageTitle="Referral Network Engine"
-      pageDescription="Monitor affiliate deep-links, dynamic rewards, and fraud-detection layers."
-      kicker="V7.1 Restored"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-[#121212]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-xl flex items-center gap-4 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 blur-[40px] rounded-full group-hover:bg-[#D4AF37]/10 transition-colors"></div>
-          <div className="w-12 h-12 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/10 flex items-center justify-center relative z-10">
-            <Network className="w-6 h-6 text-[#D4AF37]" />
-          </div>
-          <div className="relative z-10">
-            <p className="text-xs tracking-widest text-slate-500 font-bold uppercase">
-              Total Network Size
-            </p>
-            <p className="text-3xl font-light text-white mt-1">{metrics.totalNetwork.toLocaleString()}</p>
-          </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-3">
+          <span className="p-1 px-3 text-[10px] bg-[#00FFB2]/10 border border-[#00FFB2]/40 text-[#00FFB2] rounded-full font-mono uppercase tracking-widest font-bold">
+            SYNDICATE REBATES
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#00FFB2] animate-pulse" />
         </div>
-        
-        <div className="bg-[#121212]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-xl flex items-center gap-4 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#00FFB2]/5 blur-[40px] rounded-full group-hover:bg-[#00FFB2]/10 transition-colors"></div>
-          <div className="w-12 h-12 rounded-full border border-[#00FFB2]/20 bg-[#00FFB2]/10 flex items-center justify-center relative z-10">
-            <TrendingUp className="w-6 h-6 text-[#00FFB2]" />
-          </div>
-          <div className="relative z-10">
-            <p className="text-xs tracking-widest text-slate-500 font-bold uppercase">
-              Commissions Paid
-            </p>
-            <p className="text-3xl font-light text-white mt-1">{metrics.commissionsPaid.toLocaleString()} <span className="text-sm font-bold text-[#00FFB2]">AXN</span></p>
-          </div>
-        </div>
-        
-        <div className="bg-[#121212]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-xl flex items-center gap-4 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 blur-[40px] rounded-full group-hover:bg-sky-500/10 transition-colors"></div>
-          <div className="w-12 h-12 rounded-full border border-sky-500/20 bg-sky-500/10 flex items-center justify-center relative z-10">
-            <Users className="w-6 h-6 text-sky-400" />
-          </div>
-          <div className="relative z-10">
-            <p className="text-xs tracking-widest text-slate-500 font-bold uppercase">
-              Active Referrers
-            </p>
-            <p className="text-3xl font-light text-white mt-1">{metrics.activeReferrers.toLocaleString()}</p>
-          </div>
-        </div>
+        <h1 className="text-2xl md:text-3xl font-display font-bold text-white mt-1">
+          Syndicate & <span className="text-gradient-emerald">Referrals</span> Program
+        </h1>
+        <p className="text-xs text-gray-500 font-mono mt-0.5">
+          Revise affiliate tier points, multipliers, tree depth limits, and commission models.
+        </p>
       </div>
 
-      <div className="bg-[#121212]/60 backdrop-blur-2xl border border-white/5 rounded-[32px] p-6 shadow-2xl flex flex-col min-h-[500px]">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <input
-                type="text"
-                placeholder="Search referrer wallet..."
-                className="w-full bg-[#050505] border border-white/10 rounded-full py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/50 transition-all placeholder-slate-500 shadow-inner"
-              />
-              <Search className="w-4 h-4 absolute left-4 top-3 text-slate-500" />
-            </div>
-            <button className="bg-[#050505] border border-white/10 p-2.5 rounded-full hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
-              <Filter className="w-4 h-4" />
-            </button>
-          </div>
+      {alert && (
+        <div className="p-3.5 bg-[#00FFB2]/10 border border-[#00FFB2]/30 text-[#00FFB2] rounded-xl text-xs font-mono flex items-center justify-between">
+          <span>{alert}</span>
+          <button onClick={() => setAlert("")} className="text-gray-400 hover:text-white uppercase text-[10px]">Dismiss</button>
         </div>
+      )}
 
-        <div className="flex-1 overflow-x-auto custom-scrollbar">
-          {loading ? (
-             <div className="p-12 flex justify-center items-center h-full">
-               <Activity className="w-8 h-8 text-[#D4AF37] animate-pulse" />
-             </div>
-          ) : referrals.length === 0 ? (
-             <div className="p-12 text-center h-full flex flex-col justify-center items-center">
-               <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10">
-                 <Network className="w-8 h-8 text-slate-500" />
-               </div>
-               <h3 className="text-white font-bold text-lg mb-1">No Traceable Network</h3>
-               <p className="text-slate-500 text-sm">No referrals mapped yet.</p>
-             </div>
-          ) : (
-             <table className="w-full text-left text-sm border-collapse">
-               <thead className="text-xs text-slate-500 uppercase tracking-widest border-b border-white/5">
-                 <tr>
-                   <th className="pb-4 font-bold px-4">Referrer</th>
-                   <th className="pb-4 font-bold px-4">Referred User</th>
-                   <th className="pb-4 font-bold px-4">Level</th>
-                   <th className="pb-4 font-bold px-4">Status</th>
-                   <th className="pb-4 font-bold px-4">Est. Reward</th>
-                   <th className="pb-4 font-bold px-4 text-right">Date Connected</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-white/5">
-                 {referrals.map((ref) => (
-                   <tr key={ref.id} className="hover:bg-white/5 transition-colors group">
-                     <td className="py-4 px-4">
-                        <span className="font-mono text-[#D4AF37] font-bold block">{ref.referrer?.wallet_address ? `${ref.referrer_id.slice(0, 8)}...` : ref.referrer_id.slice(0, 8)}</span>
-                        <span className="text-[10px] text-slate-500">{ref.referrer?.email || 'Unknown'}</span>
-                     </td>
-                     <td className="py-4 px-4">
-                        <span className="font-mono text-slate-300 block">{ref.referred?.wallet_address ? `${ref.referred_id.slice(0, 8)}...` : ref.referred_id.slice(0, 8)}</span>
-                        <span className="text-[10px] text-slate-500">{ref.referred?.email || 'Unknown'}</span>
-                     </td>
-                     <td className="py-4 px-4 text-white font-medium">
-                       Tier {ref.level || 1}
-                     </td>
-                     <td className="py-4 px-4">
-                        <span className={`inline-flex px-2 py-1 bg-[#121212] border rounded text-[10px] font-bold uppercase tracking-widest ${
-                          ref.status === 'BLOCKED' || ref.status === 'FLAGGED' ? 'border-red-500/30 text-red-500 bg-red-500/10' :
-                          ref.status === 'REWARDED' ? 'border-[#00FFB2]/30 text-[#00FFB2] bg-[#00FFB2]/10' :
-                          'border-[#D4AF37]/30 text-[#D4AF37] bg-[#D4AF37]/10'
-                        }`}>
-                          {ref.status || 'ACTIVE'}
-                        </span>
-                     </td>
-                     <td className="py-4 px-4 text-[#00FFB2] font-bold">
-                       +{ref.reward_amount || '0'} AXN
-                     </td>
-                     <td className="py-4 px-4 text-right text-slate-400 font-mono text-xs">
-                       {new Date(ref.created_at).toLocaleDateString()}
-                     </td>
-                   </tr>
-                 ))}
-               </tbody>
-             </table>
-          )}
-        </div>
+      {/* Highlights */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <GlassCard className="p-6 border-white/5" hoverEffect={false}>
+          <div className="text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">Total Referrals Registered</div>
+          <div className="font-mono text-3xl font-bold text-white">1,402 Users</div>
+          <p className="text-[10px] text-gray-500 mt-1">Staked through syndicate invitation portals</p>
+        </GlassCard>
+
+        <GlassCard className="p-6 border-white/5" hoverEffect={false}>
+          <div className="text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">Commissions Paid</div>
+          <div className="font-mono text-3xl font-bold text-[#D4AF37]">31.02 ETH</div>
+          <p className="text-[10px] text-[#00FFB2] mt-1">Dispensed automatically on node lock success</p>
+        </GlassCard>
+
+        <GlassCard className="p-6 border-white/5" hoverEffect={false}>
+          <div className="text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">Default Rebate Rate</div>
+          <div className="font-mono text-3xl font-bold text-white">5.0% <span className="text-xs text-gray-500">Base</span></div>
+          <p className="text-[10px] text-gray-500 mt-1">Configured for standard level accounts</p>
+        </GlassCard>
       </div>
-    </AdminLayout>
+
+      {/* Main Registry */}
+      <GlassCard className="p-6 border-white/5" hoverEffect={false}>
+        <h3 className="font-display font-semibold text-white text-sm mb-4">Ecosystem Syndicate partner channels</h3>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-mono text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-white/5 bg-white/[0.01]">
+                <th className="p-4 text-gray-400 font-bold uppercase text-[10px]">Partner ref ID</th>
+                <th className="p-4 text-gray-400 font-bold uppercase text-[10px]">Custom link code</th>
+                <th className="p-4 text-gray-400 font-bold uppercase text-[10px]">Associated wallet</th>
+                <th className="p-4 text-gray-400 font-bold uppercase text-[10px]">Successful invites</th>
+                <th className="p-4 text-gray-400 font-bold uppercase text-[10px]">Accumulated payout</th>
+                <th className="p-4 text-gray-400 font-bold uppercase text-[10px]">Loyalty Status</th>
+                <th className="p-4 text-gray-300 font-bold uppercase text-[10px] text-right">Commission Multiplier settings</th>
+              </tr>
+            </thead>
+            <tbody>
+              {refs.map((r) => (
+                <tr key={r.id} className="border-b border-white/[0.02] hover:bg-white/[0.01] transition-all">
+                  <td className="p-4 font-bold text-white">{r.id}</td>
+                  <td className="p-4 text-gray-300 font-semibold">{r.refCode}</td>
+                  <td className="p-4 text-gray-500 select-all">{r.associatedWallet}</td>
+                  <td className="p-4 text-white font-bold">{r.successfulInvites} users</td>
+                  <td className="p-4 text-[#D4AF37] font-semibold">{r.commissionsPaidEth}</td>
+                  <td className="p-4">
+                    <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold ${
+                      r.status === "Gold Oracle Elite" ? "bg-[#D4AF37]/10 text-[#D4AF37]" :
+                      r.status === "Silver Syndicate" ? "bg-purple-500/10 text-purple-400" :
+                      "bg-blue-500/10 text-blue-400"
+                    }`}>
+                      {r.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-right">
+                    <div className="inline-flex items-center gap-2">
+                      <select 
+                        value={r.unlimitedBonusRatio} 
+                        onChange={(e) => handleUpdateBonus(r.id, Number(e.target.value))}
+                        className="bg-black border border-white/10 rounded px-2.5 py-1 text-xs text-white text-right focus:outline-none focus:border-[#00FFB2]"
+                      >
+                        <option value="5">5.0%</option>
+                        <option value="7">7.0%</option>
+                        <option value="10">10.0%</option>
+                        <option value="12">12.0%</option>
+                        <option value="15">15.0%</option>
+                      </select>
+                      <span className="text-gray-500 text-[10px] font-mono">rebate</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </GlassCard>
+    </div>
   );
 }
