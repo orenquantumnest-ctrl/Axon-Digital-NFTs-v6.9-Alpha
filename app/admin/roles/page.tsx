@@ -1,169 +1,177 @@
 "use client";
 
 import { useState } from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { GlowButton } from "@/components/ui/GlowButton";
-import { 
-  ShieldCheck, Shield, Users, Radio, CheckCircle, 
-  Trash, Plus, RefreshCcw, UserPlus, Key
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import {
+  ShieldCheck,
+  Plus,
+  Users,
+  Key,
+  Monitor,
+  Activity,
+  Settings,
+  Database,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
-interface AdminRoleAccount {
-  id: string;
-  associatedWallet: string;
-  assignedRole: "Super Admin" | "Operator Node" | "Auditor Desk";
-  addedAt: string;
-  accessCount: number;
-}
-
-const INITIAL_ROLES: AdminRoleAccount[] = [
-  { id: "ADM-99", associatedWallet: "0x7bbc21dbff39db9a1cb1db9a1cb1db9a1cb1db9a", assignedRole: "Super Admin", addedAt: "2026-05-01 12:00", accessCount: 541 },
-  { id: "ADM-42", associatedWallet: "0x1234567890123456789012345678901234567890", assignedRole: "Auditor Desk", addedAt: "2026-05-10 14:30", accessCount: 122 },
-  { id: "ADM-12", associatedWallet: "0x3bc789a1bc1db9a1cb1db9a1cb1db9a1cb1db9aa", assignedRole: "Operator Node", addedAt: "2026-05-15 09:15", accessCount: 9 }
+const ROLES = [
+  {
+    id: "1",
+    title: "Super Admin",
+    description:
+      "Full access to all systems, billing, encryption keys, and role management.",
+    users: 2,
+    scopes: ["All"],
+  },
+  {
+    id: "2",
+    title: "Finance Admin",
+    description:
+      "Access to deposits, withdrawals, transactions, and treasury monitoring.",
+    users: 5,
+    scopes: ["Deposits", "Withdrawals", "Transactions", "Ledger"],
+  },
+  {
+    id: "3",
+    title: "Support Admin",
+    description: "Access to user management, KYC, and basic system logs.",
+    users: 12,
+    scopes: ["Users", "KYC", "Logs", "Support"],
+  },
+  {
+    id: "4",
+    title: "Analyst Admin",
+    description:
+      "Read-only access to analytics, revenue forecasts, and referrals.",
+    users: 8,
+    scopes: ["Read-Only Analytics", "Referrals"],
+  },
 ];
 
-export default function CoreRoles() {
-  const [admins, setAdmins] = useState<AdminRoleAccount[]>(INITIAL_ROLES);
-  const [newWallet, setNewWallet] = useState("");
-  const [newRole, setNewRole] = useState<"Super Admin" | "Operator Node" | "Auditor Desk">("Operator Node");
-  const [alert, setAlert] = useState("");
-
-  const handleCreateRole = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newWallet) return;
-
-    const fresh: AdminRoleAccount = {
-      id: `ADM-${Math.floor(10 + Math.random() * 89)}`,
-      associatedWallet: newWallet,
-      assignedRole: newRole,
-      addedAt: new Date().toISOString().replace("T", " ").substring(0, 16),
-      accessCount: 0
-    };
-
-    setAdmins([...admins, fresh]);
-    setAlert(`Authorized operator key connected! Wallet ${newWallet.substring(0, 10)}... recognized as ${newRole}.`);
-    setNewWallet("");
-  };
-
-  const handleDeleteRole = (id: string, wallet: string) => {
-    const activeWallet = localStorage.getItem("axon_admin_wallet");
-    if (wallet === activeWallet) {
-      setAlert("Access Blocked: You cannot revoke authorization keys from your active session wallet!");
-      return;
-    }
-
-    setAdmins(prev => prev.filter(item => item.id !== id));
-    setAlert(`Revoked authentication clearance for ID ${id}. Key flagged and locked.`);
-  };
-
+export default function AdminRolesPage() {
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3">
-          <span className="p-1 px-3 text-[10px] bg-purple-500/10 border border-purple-500/40 text-purple-400 rounded-full font-mono uppercase tracking-widest font-bold">
-            ROLES MANAGER
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+    <AdminLayout
+      pageTitle="Multi-Admin RBAC"
+      pageDescription="Manage organizational access Control, departments, and hierarchical permissions."
+      kicker="Access Control"
+    >
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4 px-2">
+        <div className="text-sm text-slate-400">
+          Total Admins: <strong className="text-white">27</strong> across{" "}
+          <strong>4</strong> distinct roles.
         </div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold text-white mt-1">
-          Core Administrators & <span className="text-gradient-emerald">Operators</span> Registry
-        </h1>
-        <p className="text-xs text-gray-500 font-mono mt-0.5">
-          Attach multi-sig authorization keys, designate Node Operators or Audit Desks.
-        </p>
+        <button className="bg-gradient-to-r from-[#D4AF37] to-[#B8942E] text-black px-6 py-2 rounded-full font-bold text-sm hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all flex items-center gap-2 w-max ml-auto">
+          <Plus className="w-4 h-4" /> Create Role Policy
+        </button>
       </div>
 
-      {alert && (
-        <div className="p-3.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-xl text-xs font-mono flex items-center justify-between">
-          <span>{alert}</span>
-          <button onClick={() => setAlert("")} className="text-gray-400 hover:text-white uppercase text-[10px]">Close</button>
-        </div>
-      )}
-
-      {/* Grid view */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Right Tab: Add Admin wallet key */}
-        <div className="lg:col-span-5">
-          <GlassCard className="p-6 border-white/5 bg-white/[0.01]/10" hoverEffect={false}>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider font-mono mb-4 flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-[#D4AF37]" /> Register Operator Key
-            </h3>
-
-            <form onSubmit={handleCreateRole} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-mono tracking-wider text-gray-400 uppercase mb-1">Cryptographic Web3 Wallet</label>
-                <input 
-                  type="text"
-                  required
-                  placeholder="e.g. 0x1234567890123456789012345678901234567890"
-                  value={newWallet}
-                  onChange={(e) => setNewWallet(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#00FFB2] font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-mono tracking-wider text-gray-400 uppercase mb-1">Access Authorization Level</label>
-                <select 
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value as any)}
-                  className="w-full bg-black/40 border border-[#00FFB2]/20 rounded-lg px-3 py-2 text-xs text-gray-400 focus:outline-none focus:border-[#00FFB2]"
-                >
-                  <option value="Super Admin">Super Admin (Consensus Authority)</option>
-                  <option value="Operator Node">Operator Node (Validator Controls)</option>
-                  <option value="Auditor Desk">Auditor Desk (Read/Flag Limits)</option>
-                </select>
-              </div>
-
-              <GlowButton type="submit" className="w-full py-2.5 text-xs font-semibold">
-                Authorize Operator Key
-              </GlowButton>
-            </form>
-          </GlassCard>
-        </div>
-
-        {/* Left list: Admin List */}
-        <div className="lg:col-span-7 space-y-4">
-          <h3 className="font-display font-semibold text-white text-sm">Active Authorized Administrations</h3>
-          
-          <div className="space-y-4">
-            {admins.map((adm) => (
-              <GlassCard key={adm.id} className="p-5 border-white/5 bg-white/[0.01]" hoverEffect={false}>
-                <div className="flex justify-between items-center gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
-                      <Key className="w-4 h-4 text-[#00FFB2]" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-white select-all">{adm.associatedWallet}</span>
-                        <span className="text-[9px] font-mono text-gray-500">{adm.id}</span>
-                      </div>
-                      <div className="text-[10px] text-gray-400 mt-1">
-                        Active clearance: <span className="text-[#00FFB2] font-bold font-mono">{adm.assignedRole}</span> | Total locks signed: <span className="text-white font-bold">{adm.accessCount} sessions</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2 text-right shrink-0">
-                    <button 
-                      onClick={() => handleDeleteRole(adm.id, adm.associatedWallet)}
-                      className="p-1 px-3 border border-red-500/20 hover:border-red-500 text-[10px] font-mono font-bold text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
-                      title="Revoke and Flag key"
-                    >
-                      Revoke Clearance
-                    </button>
-                    <span className="text-[9px] font-mono text-gray-500">Recognized: {adm.addedAt}</span>
-                  </div>
-                </div>
-              </GlassCard>
-            ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="col-span-1 border border-white/5 rounded-3xl bg-[#121212]/60 backdrop-blur-xl p-6 flex flex-col">
+          <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/5">
+            <div className="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6 text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">Security Model</h3>
+              <p className="text-xs text-slate-400">
+                Strict hierarchical derivation.
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-slate-300 leading-relaxed mb-6">
+            Roles are cryptographically enforced via Supabase Row Level Security
+            (RLS) policies. Only Super Admins can alter these structures.
+          </p>
+          <div className="space-y-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 w-2 h-2 rounded-full bg-[#00FFB2]"></div>
+              <p className="text-xs text-slate-400">
+                JWT Payload contains role claims checked during validation.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 w-2 h-2 rounded-full bg-sky-500"></div>
+              <p className="text-xs text-slate-400">
+                Session bridge isolates wallet passwords from frontend logic.
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 w-2 h-2 rounded-full bg-[#D4AF37]"></div>
+              <p className="text-xs text-slate-400">
+                All destructive actions require MFA enforcement.
+              </p>
+            </div>
+          </div>
+          <div className="mt-auto">
+            <button className="w-full bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-widest py-3 rounded-xl border border-white/10 transition-colors">
+              Audit RLS Matrix
+            </button>
           </div>
         </div>
 
+        <div className="col-span-1 lg:col-span-2 space-y-4">
+          {ROLES.map((role) => (
+            <div
+              key={role.id}
+              className="bg-[#0A0A0A] border border-white/5 rounded-3xl p-6 hover:border-white/20 transition-colors"
+            >
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {role.title}
+                  </h3>
+                  <p className="text-sm text-slate-400">{role.description}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  {role.title !== "Super Admin" && (
+                    <button className="p-2 bg-white/5 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {role.scopes.map((scope) => (
+                  <span
+                    key={scope}
+                    className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-slate-300"
+                  >
+                    {scope}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+                <div className="flex -space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-slate-800 border-2 border-[#0A0A0A] flex items-center justify-center text-[10px] font-bold text-white">
+                    A
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-[#0A0A0A] flex items-center justify-center text-[10px] font-bold text-white">
+                    S
+                  </div>
+                  {role.users > 2 && (
+                    <div className="w-8 h-8 rounded-full bg-[#121212] border-2 border-[#0A0A0A] flex items-center justify-center text-[10px] font-bold text-slate-400">
+                      +{role.users - 2}
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs text-slate-500 font-medium">
+                  {role.users} active accounts in this policy
+                </span>
+
+                <button className="ml-auto text-xs font-bold uppercase tracking-widest text-sky-400 hover:text-sky-300">
+                  Manage Users
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

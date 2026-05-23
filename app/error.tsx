@@ -1,9 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from "react";
-import { GlowButton } from "@/components/ui/GlowButton";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 
 export default function Error({
   error,
@@ -12,38 +10,31 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error("Unhydrated runtime chunk or script anomaly:", error);
-  }, [error]);
-
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* Background Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00FFB2]/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#D4AF37]/15 rounded-full blur-[120px] pointer-events-none" />
-
-      <GlassCard className="p-8 max-w-md w-full text-center border-white/5 relative z-10" hoverEffect={false}>
-        <div className="w-16 h-16 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="w-8 h-8 text-[#D4AF37]" />
+    <div className="min-h-screen bg-[#050505] text-slate-200 font-sans flex flex-col items-center justify-center p-6 selection:bg-[#00FFB2] selection:text-black">
+      <div className="flex flex-col items-center max-w-md text-center">
+        <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+          <ShieldCheck className="w-8 h-8 text-red-400" />
         </div>
-
-        <span className="p-1 px-3 text-[10px] bg-red-500/10 border border-red-500/40 text-red-400 rounded-full font-mono uppercase tracking-widest font-bold">
-          SYSTEM INTERRUPT
-        </span>
-
-        <h2 className="text-xl md:text-2xl font-display font-bold mt-4 mb-2">
-          Sync Connection Stalled
-        </h2>
-        
-        <p className="text-xs text-gray-400 font-mono mb-6 leading-relaxed">
-          The environment experienced a chunk connection anomaly or stale script hydration state. Clear browser cache or click below to restabilize.
+        <h1 className="text-3xl font-bold text-white tracking-tight mb-3">System Anomaly Detected</h1>
+        <p className="text-slate-400 mb-8 max-w-sm">
+          An unexpected error occurred in the AXON digital interface. Please try reloading the instance.
         </p>
-
-        <GlowButton onClick={() => reset()} className="w-full py-2.5 text-xs font-semibold flex items-center justify-center gap-2">
-          <RotateCcw className="w-4 h-4" /> RE-ESTABLISH HANDSHAKE
-        </GlowButton>
-      </GlassCard>
+        <div className="flex gap-4">
+          <button
+            onClick={() => reset()}
+            className="px-6 py-2.5 rounded-full bg-white/5 border border-white/10 text-white font-bold text-sm tracking-wide hover:bg-white/10 transition-colors"
+          >
+            Re-initialize
+          </button>
+          <Link
+            href="/"
+            className="px-6 py-2.5 rounded-full bg-[#121212] border border-[#00FFB2]/30 text-[#00FFB2] font-bold text-sm tracking-wide hover:bg-[#00FFB2]/10 transition-colors shadow-[0_0_15px_rgba(0,255,178,0.1)]"
+          >
+            Return to Core
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
-

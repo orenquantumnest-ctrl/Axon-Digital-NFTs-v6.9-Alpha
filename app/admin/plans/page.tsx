@@ -1,173 +1,327 @@
 "use client";
 
-import { useState } from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { GlowButton } from "@/components/ui/GlowButton";
-import { 
-  TrendingUp, Settings, Plus, Layers, ShieldAlert,
-  Percent, Clock, CircleDollarSign, CheckCircle2, ChevronRight
+import { useState, useEffect } from "react";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { supabase } from "@/lib/supabase";
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  Edit2,
+  Trash2,
+  Power,
+  Eye,
+  TrendingUp,
+  Users,
+  X,
+  AlertCircle,
 } from "lucide-react";
 
-interface StakingPlan {
-  id: string;
-  name: string;
-  apy: number;
-  lockPeriodDays: number;
-  minEntry: string;
-  maxEntry: string;
-  activeNodesCount: number;
-  totalVolumeLocked: string;
-  multiplier: number;
-}
+export default function AdminPlansPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const INITIAL_PLANS: StakingPlan[] = [
-  { id: "PLAN-STARTER", name: "Starter Protocol Core", apy: 15, lockPeriodDays: 30, minEntry: "0.5 ETH", maxEntry: "5.0 ETH", activeNodesCount: 142, totalVolumeLocked: "340.5 ETH", multiplier: 1.0 },
-  { id: "PLAN-PRO", name: "Pro Syndicate Pool", apy: 22, lockPeriodDays: 90, minEntry: "5.0 ETH", maxEntry: "50.0 ETH", activeNodesCount: 89, totalVolumeLocked: "1,290.0 ETH", multiplier: 1.5 },
-  { id: "PLAN-ELITE", name: "Elite Oracle Ledger", apy: 35, lockPeriodDays: 180, minEntry: "50.0 ETH", maxEntry: "Unlimited", activeNodesCount: 34, totalVolumeLocked: "3,110.4 ETH", multiplier: 2.2 }
-];
+  const [newPlanName, setNewPlanName] = useState("");
+  const [newPlanPrice, setNewPlanPrice] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [priceError, setPriceError] = useState("");
 
-export default function PlansAdmin() {
-  const [plans, setPlans] = useState<StakingPlan[]>(INITIAL_PLANS);
-  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
-  const [alertMsg, setAlertMsg] = useState("");
-
-  const handleUpdateApy = (id: string, newApy: number) => {
-    setPlans(prev => prev.map(p => {
-      if (p.id === id) {
-        return { ...p, apy: newApy };
+  useEffect(() => {
+    async function fetchPlans() {
+      try {
+        const { data, error } = await supabase
+          .from("plans")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (data && data.length > 0 && !error) {
+          setPlans(data);
+        } else {
+          // Fallback to dummy data mapping if table does not exist or is empty
+          setPlans([
+            {
+              id: "pln_1",
+              name: "Starter Alpha",
+              price: "100 USDT",
+              roi: "15%",
+              duration: "30 Days",
+              status: "active",
+              nftLabel: "Common",
+              investors: 124,
+            },
+            {
+              id: "pln_2",
+              name: "Pro Velocity",
+              price: "500 USDT",
+              roi: "25%",
+              duration: "45 Days",
+              status: "active",
+              nftLabel: "Rare",
+              investors: 89,
+            },
+            {
+              id: "pln_3",
+              name: "Elite Quantum",
+              price: "1000 USDT",
+              roi: "40%",
+              duration: "60 Days",
+              status: "paused",
+              nftLabel: "Legendary",
+              investors: 42,
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error("Error fetching plans:", err);
+      } finally {
+        setLoading(false);
       }
-      return p;
-    }));
-    setAlertMsg(`Staking Plan "${id}" APY configuration updated to ${newApy}%.`);
+    }
+    fetchPlans();
+  }, []);
+
+  const filteredPlans = plans.filter((p) =>
+    (p.name || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setNewPlanName(val);
+    if (!val) {
+      setNameError("Plan name is required.");
+    } else if (val.length < 3) {
+      setNameError("Plan name must be at least 3 characters.");
+    } else {
+      setNameError("");
+    }
   };
 
-  const handleUpdateMultiplier = (id: string, newMultiplier: number) => {
-    setPlans(prev => prev.map(p => {
-      if (p.id === id) {
-        return { ...p, multiplier: newMultiplier };
-      }
-      return p;
-    }));
-    setAlertMsg(`Loyalty Yield Multiplier modified to ${newMultiplier}x for plan ${id}.`);
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setNewPlanPrice(val);
+    if (!val || isNaN(Number(val))) {
+      setPriceError("A valid numeric price is required.");
+    } else if (Number(val) < 10) {
+      setPriceError("Price must be at least 10 USDT.");
+    } else {
+      setPriceError("");
+    }
+  };
+
+  const handleCreatePlan = () => {
+    if (nameError || priceError || !newPlanName || !newPlanPrice) return;
+    setIsModalOpen(false);
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3">
-          <span className="p-1 px-3 text-[10px] bg-[#00FFB2]/10 border border-[#00FFB2]/40 text-[#00FFB2] rounded-full font-mono uppercase tracking-widest font-bold">
-            POOL CONFIGURATOR
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00FFB2] animate-pulse" />
+    <AdminLayout
+      pageTitle="Plan Catalog Studio"
+      pageDescription="Configure NFT investment plans, ROI percentages, and duration rules."
+      kicker="Catalog"
+    >
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4 px-2">
+        <div className="flex flex-wrap items-center gap-4 ml-auto">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search plans..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-[#121212] border border-white/10 text-white rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-[#D4AF37] w-48 md:w-64 transition-colors"
+            />
+            <Search className="w-4 h-4 absolute left-4 top-2.5 text-slate-500" />
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-gradient-to-r from-[#D4AF37] to-[#B8942E] text-black px-6 py-2 rounded-full font-bold text-sm hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> New Plan
+          </button>
         </div>
-        <h1 className="text-2xl md:text-3xl font-display font-bold text-white mt-1">
-          Staking Pools & <span className="text-gradient-emerald">APYs</span> Scheduler
-        </h1>
-        <p className="text-xs text-gray-500 font-mono mt-0.5">
-          Revise base yield percentages, duration multipliers, and minimum stake prerequisites.
-        </p>
       </div>
 
-      {alertMsg && (
-        <div className="p-3.5 bg-[#00FFB2]/10 border border-[#00FFB2]/30 text-[#00FFB2] rounded-xl text-xs font-mono flex items-center justify-between">
-          <span>{alertMsg}</span>
-          <button onClick={() => setAlertMsg("")} className="text-gray-400 hover:text-white uppercase text-[10px]">Dismiss</button>
+      <div className="mb-8 p-6 bg-gradient-to-r from-[#00FFB2]/10 to-transparent border border-[#00FFB2]/20 rounded-3xl flex flex-col md:flex-row gap-8 items-center overflow-hidden relative group">
+         <div className="absolute top-0 right-0 w-64 h-64 bg-[#00FFB2]/5 blur-[80px] rounded-full group-hover:bg-[#00FFB2]/10 transition-colors pointer-events-none"></div>
+         <div className="w-full md:w-48 h-auto rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-white/10">
+           <img src="/free-nft-plan.jpeg" alt="Free NFT Plan" className="w-full h-auto object-cover" />
+         </div>
+         <div className="flex-1 relative z-10">
+           <span className="text-[10px] font-bold tracking-widest text-[#00FFB2] uppercase mb-2 block">Network Initiative</span>
+           <h3 className="text-2xl font-light text-white mb-2">$40 Free NFT Trial Plan</h3>
+           <p className="text-sm text-slate-300 max-w-xl leading-relaxed mb-6">
+             Offer new users a risk-free entry. They can claim $1 daily for 40 days to unlock. 
+             After 40 days, the user can use the $40 collected to activate the miner. 
+             <strong className="text-[#D4AF37] font-bold ml-1">Requires 1 referral to activate.</strong>
+           </p>
+           <button className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-bold tracking-wide transition-colors border border-white/10 flex items-center gap-2">
+             <Edit2 className="w-4 h-4" /> Edit Free Trial Config
+           </button>
+         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          <div className="col-span-full py-12 flex justify-center text-[#D4AF37]">
+            Loading plans...
+          </div>
+        ) : filteredPlans.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-slate-500">
+            No plans found.
+          </div>
+        ) : (
+          filteredPlans.map((plan) => (
+            <div
+              key={plan.id}
+              className="bg-[#121212]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group"
+            >
+              {/* Status light */}
+              <div className="absolute top-6 right-6 flex items-center gap-2 bg-[#0A0A0A] px-3 py-1.5 rounded-full border border-white/5">
+                <span
+                  className={`w-2 h-2 rounded-full ${plan.status === "active" ? "bg-[#00FFB2] shadow-[0_0_10px_#00FFB2]" : "bg-slate-500"}`}
+                ></span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                  {plan.status || "UNKNOWN"}
+                </span>
+              </div>
+
+              <div className="flex flex-col h-full mt-2">
+                <span className="text-xs font-bold text-[#D4AF37] tracking-widest uppercase mb-1">
+                  {plan.nftLabel || plan.nft_label || "Tier"} TIER
+                </span>
+                <h3 className="text-2xl font-light text-white mb-6">
+                  {plan.name}
+                </h3>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                    <span className="text-sm text-slate-400">Entry Price</span>
+                    <span className="text-sm font-bold text-white">
+                      {plan.price}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                    <span className="text-sm text-slate-400">Projected ROI</span>
+                    <span className="text-sm font-bold text-[#00FFB2]">
+                      {plan.roi}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pb-3 border-b border-white/5">
+                    <span className="text-sm text-slate-400">
+                      Lockup Duration
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {plan.duration}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pb-3">
+                    <span className="text-sm text-slate-400 flex items-center gap-2">
+                      <Users className="w-4 h-4" /> Active Wallets
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {plan.investors || 0}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-between gap-3 pt-4 border-t border-white/5">
+                  <button className="flex-1 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <Edit2 className="w-4 h-4" /> Edit
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <button className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                      <Power
+                        className={`w-4 h-4 ${plan.status === "active" ? "text-emerald-400" : "text-slate-400"}`}
+                      />
+                    </button>
+                    <button className="w-10 h-10 rounded-xl bg-white/5 hover:bg-red-500/20 flex items-center justify-center text-slate-400 hover:text-red-400 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+
+        {/* Add New Plan Card */}
+        <div
+          onClick={() => setIsModalOpen(true)}
+          className="bg-[#121212]/30 backdrop-blur-xl border border-dashed border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center min-h-[400px] cursor-pointer hover:bg-[#121212]/50 hover:border-white/20 transition-all group"
+        >
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:bg-white/10 transition-colors">
+            <Plus className="w-8 h-8 text-[#D4AF37]" />
+          </div>
+          <h3 className="text-lg font-bold text-white">Create New Plan</h3>
+          <p className="text-sm text-slate-400 text-center mt-2 max-w-[200px]">
+            Launch a new NFT staking tier into the ecosystem.
+          </p>
+        </div>
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#121212] border border-white/10 rounded-3xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white tracking-tight">
+                Create New Plan
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 block mb-1.5">
+                  Plan Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Master Node"
+                  value={newPlanName}
+                  onChange={handleNameChange}
+                  className={`w-full bg-[#050505] border ${nameError ? "border-red-500/50" : "border-white/10"} rounded-xl py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-[#D4AF37]/50 transition-colors text-sm`}
+                />
+                {nameError && (
+                  <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1.5 pl-1">
+                    <AlertCircle className="w-3 h-3" /> {nameError}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 block mb-1.5">
+                  Entry Price (USDT)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 500"
+                  value={newPlanPrice}
+                  onChange={handlePriceChange}
+                  className={`w-full bg-[#050505] border ${priceError ? "border-red-500/50" : "border-white/10"} rounded-xl py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-[#D4AF37]/50 transition-colors text-sm font-mono`}
+                />
+                {priceError && (
+                  <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1.5 pl-1">
+                    <AlertCircle className="w-3 h-3" /> {priceError}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={handleCreatePlan}
+                disabled={
+                  !!nameError || !!priceError || !newPlanName || !newPlanPrice
+                }
+                className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#B8942E] text-black font-bold text-sm tracking-wide shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Launch Plan
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* Global overview highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <GlassCard className="p-6 border-white/5" hoverEffect={false}>
-          <div className="text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">Total Locked Deposits</div>
-          <div className="font-mono text-3xl font-bold text-[#00FFB2]">4,740.9 ETH</div>
-          <p className="text-[10px] text-gray-500 mt-1">Summing all distributed nodes accounts</p>
-        </GlassCard>
-
-        <GlassCard className="p-6 border-white/5" hoverEffect={false}>
-          <div className="text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">Operational Nodes</div>
-          <div className="font-mono text-3xl font-bold text-white">265 Active</div>
-          <p className="text-[10px] text-[#00FFB2] mt-1">Consensus validators healthy status</p>
-        </GlassCard>
-
-        <GlassCard className="p-6 border-white/5" hoverEffect={false}>
-          <div className="text-xs font-mono text-gray-400 uppercase tracking-widest mb-2">Weighted Staking APY</div>
-          <div className="font-mono text-3xl font-bold text-[#D4AF37]">24.85%</div>
-          <p className="text-[10px] text-gray-500 mt-1">Yield limits audited within safety benchmarks</p>
-        </GlassCard>
-      </div>
-
-      {/* Interactive Staking Plan Cards */}
-      <div className="space-y-6">
-        {plans.map((plan) => (
-          <GlassCard key={plan.id} className="p-8 border-white/5 bg-white/[0.01]" hoverEffect={false}>
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              
-              {/* Product Info */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-white font-display">{plan.name}</span>
-                  <span className="text-[10px] font-mono bg-white/5 border border-white/10 text-gray-400 px-2 py-0.5 rounded">
-                    {plan.id}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-                  <div className="font-mono text-xs">
-                    <span className="text-gray-500 block">Min. Entry:</span> 
-                    <span className="text-white font-bold">{plan.minEntry}</span>
-                  </div>
-                  <div className="font-mono text-xs">
-                    <span className="text-gray-500 block">Max. Entry:</span>
-                    <span className="text-white font-bold">{plan.maxEntry}</span>
-                  </div>
-                  <div className="font-mono text-xs">
-                    <span className="text-gray-500 block">Locking Frame:</span>
-                    <span className="text-white font-bold">{plan.lockPeriodDays} Days</span>
-                  </div>
-                  <div className="font-mono text-xs">
-                    <span className="text-gray-500 block">Total Lock Allocation:</span>
-                    <span className="text-[#00FFB2] font-semibold">{plan.totalVolumeLocked}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Editing controls panel */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 p-4 rounded-xl border border-white/5 bg-black/40 xl:min-w-md shrink-0">
-                {/* APY control */}
-                <div className="space-y-1">
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400">Yield Return Percentage (APY)</label>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="number"
-                      value={plan.apy}
-                      onChange={(e) => handleUpdateApy(plan.id, Number(e.target.value))}
-                      className="w-20 bg-black border border-white/15 rounded px-2.5 py-1 text-xs font-mono font-bold text-white focus:outline-none focus:border-[#00FFB2]"
-                    />
-                    <span className="text-xs font-mono text-gray-400">% APY</span>
-                  </div>
-                </div>
-
-                {/* Multiplier control */}
-                <div className="space-y-1">
-                  <label className="block text-[10px] font-mono uppercase tracking-wider text-gray-400">Rank Multiplier Factor</label>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="number"
-                      step="0.1"
-                      value={plan.multiplier}
-                      onChange={(e) => handleUpdateMultiplier(plan.id, Number(e.target.value))}
-                      className="w-20 bg-black border border-white/15 rounded px-2.5 py-1 text-xs font-mono font-bold text-white focus:outline-none"
-                    />
-                    <span className="text-xs font-mono text-gray-400">x weight</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </GlassCard>
-        ))}
-      </div>
-    </div>
+    </AdminLayout>
   );
 }

@@ -1,6 +1,6 @@
 {
-  "name": "AXON DIGITAL NFTs",
-  "description": "High-performance landing page for a premium NFT ecosystem brand, featuring Apple HIG-level UI precision, liquid glassmorphism, 120fps motion design, and a dark neon futuristic theme.",
+  "name": "AXON DIGITAL NFTs Admin Portal",
+  "description": "Premium NFT ecosystem brand admin dashboard.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
