@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase } from "@/lib/supabase";
 import {
@@ -143,9 +144,16 @@ export default function AdminPlansPage() {
 
       <div className="mb-8 p-6 bg-gradient-to-r from-[#00FFB2]/10 to-transparent border border-[#00FFB2]/20 rounded-3xl flex flex-col md:flex-row gap-8 items-center overflow-hidden relative group">
          <div className="absolute top-0 right-0 w-64 h-64 bg-[#00FFB2]/5 blur-[80px] rounded-full group-hover:bg-[#00FFB2]/10 transition-colors pointer-events-none"></div>
-         <div className="w-full md:w-48 h-auto rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-white/10">
-           <img src="/free-nft-plan.jpeg" alt="Free NFT Plan" className="w-full h-auto object-cover" />
-         </div>
+          <div className="w-full md:w-48 h-auto rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-white/10 relative">
+            <Image 
+              src="/free-nft-plan.jpeg" 
+              alt="Free NFT Plan" 
+              width={192} 
+              height={192} 
+              className="w-full h-auto object-cover" 
+              referrerPolicy="no-referrer"
+            />
+          </div>
          <div className="flex-1 relative z-10">
            <span className="text-[10px] font-bold tracking-widest text-[#00FFB2] uppercase mb-2 block">Network Initiative</span>
            <h3 className="text-2xl font-light text-white mb-2">$40 Free NFT Trial Plan</h3>

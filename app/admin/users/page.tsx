@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase, ProfileRow } from "@/lib/supabase";
 import {
@@ -287,7 +288,14 @@ export default function AdminUsersPage() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-white font-bold text-xs overflow-hidden">
                             {user.avatar_url ? (
-                              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                              <Image 
+                                src={user.avatar_url} 
+                                alt="" 
+                                width={40} 
+                                height={40} 
+                                className="w-full h-full object-cover" 
+                                referrerPolicy="no-referrer"
+                              />
                             ) : (
                               (user.username || user.email || "??").substring(0, 2).toUpperCase()
                             )}

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -119,20 +120,15 @@ export default function AdminLoginPage() {
   // Real-time listener for Super Admin Wallet Address (BEP20)
   useEffect(() => {
     if (!superWallet) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsWalletValid(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperWalletError("");
       return;
     }
     const result = bep20Regex.test(superWallet);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsWalletValid(result);
     if (!result) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperWalletError("Not a valid BEP20 BNB Smart Chain receiving address format.");
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperWalletError("");
     }
   }, [superWallet]);
@@ -140,20 +136,15 @@ export default function AdminLoginPage() {
   // Real-time listener for Super Admin Password
   useEffect(() => {
     if (!superPassword) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsPasswordValid(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperPasswordError("");
       return;
     }
     const result = superPassword.length >= 6;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsPasswordValid(result);
     if (!result) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperPasswordError("Password needs to be at least 6 characters.");
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperPasswordError("");
     }
   }, [superPassword]);
@@ -161,23 +152,17 @@ export default function AdminLoginPage() {
   // Real-time listener for Super Admin MFA/Authenticator Code
   useEffect(() => {
     if (!mfaCode) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsMfaValid(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperMfaError("");
       return;
     }
     const result = mfaCode === "198060";
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMfaValid(result);
     if (mfaCode.length === 6 && !result) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperMfaError("Invalid Authentication Code. The correct code is 198060.");
     } else if (result) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperMfaError("");
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuperMfaError("Authentication code must be exactly 6 digits.");
     }
   }, [mfaCode]);
@@ -185,20 +170,15 @@ export default function AdminLoginPage() {
   // Real-time listener for Sub Admin Username
   useEffect(() => {
     if (!subUser) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSubUserValid(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubUserError("");
       return;
     }
     const result = subUser.length >= 3;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSubUserValid(result);
     if (!result) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubUserError("Username must be at least 3 characters long.");
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubUserError("");
     }
   }, [subUser]);
@@ -206,20 +186,15 @@ export default function AdminLoginPage() {
   // Real-time listener for Sub Admin Pin
   useEffect(() => {
     if (!subPin) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSubPinValid(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubPinError("");
       return;
     }
     const result = subPin.length >= 4;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSubPinValid(result);
     if (!result) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubPinError("PIN/Password must be at least 4 characters long.");
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubPinError("");
     }
   }, [subPin]);
@@ -227,20 +202,15 @@ export default function AdminLoginPage() {
   // Real-time listener for Sub Admin MFA Code
   useEffect(() => {
     if (!subMfaCode) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsSubMfaValid(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubMfaError("");
       return;
     }
     const result = subMfaCode.length === 6;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSubMfaValid(result);
     if (!result) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubMfaError("Authentication code must be 6 digits.");
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubMfaError("");
     }
   }, [subMfaCode]);

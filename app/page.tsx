@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
+import { PlanSlider } from "@/components/sections/PlanSlider";
+import { NFTShowcase } from "@/components/sections/NFTShowcase";
+import { StatsSection } from "@/components/sections/StatsSection";
 import {
   ShieldCheck,
   ChevronRight,
@@ -33,116 +36,7 @@ import {
   Star
 } from "lucide-react";
 
-// Plans metadata
-interface Plan {
-  id: string;
-  name: string;
-  badge: string;
-  badgeColor: string;
-  price: string;
-  priceUsd: string;
-  roi: string;
-  yieldStat: string;
-  escrow: string;
-  image: string;
-  features: string[];
-}
 
-const PLANS: Plan[] = [
-  {
-    id: "starter",
-    name: "Genesis Origin Plan",
-    badge: "CLAIM STANDARD",
-    badgeColor: "bg-[#00FFB2]/20 text-[#00FFB2] border-[#00FFB2]/30",
-    price: "0.00 BNB",
-    priceUsd: "Free Node Allocation",
-    roi: "0.12% Daily Yield Rate",
-    yieldStat: "0.12% / Day",
-    escrow: "Tier-1 Shared Protocol",
-    image: "https://picsum.photos/seed/cyber-starter/1024/1024",
-    features: [
-      "Standard Protocol Allocation Pools",
-      "Full Discord Lounge Access",
-      "Semi-Custodial Smart Contract Audit",
-      "Base Rate Compound Yielding System"
-    ]
-  },
-  {
-    id: "pro",
-    name: "Neon Sentinel Plan",
-    badge: "MOST POPULAR",
-    badgeColor: "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/30",
-    price: "0.45 BNB",
-    priceUsd: "~ $150.00 USD Value",
-    roi: "0.58% Daily Yield Rate",
-    yieldStat: "0.58% / Day",
-    escrow: "Tier-2 Multi-Sig Escrow",
-    image: "https://picsum.photos/seed/cyber-sentinel/1024/1024",
-    features: [
-      "10x Yield-farming Pool Multiplier",
-      "Bi-Weekly Automated NFT Air-drops",
-      "Direct Governance Voting Weights",
-      "Fully Isolated Smart Custody Contract",
-      "Custom Dashboard Metrics Webhook Access"
-    ]
-  },
-  {
-    id: "elite",
-    name: "Sovereign Archon Plan",
-    badge: "FOUNDERS LEVEL",
-    badgeColor: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-    price: "2.80 BNB",
-    priceUsd: "~ $940.00 USD Value",
-    roi: "1.15% Daily Yield Rate",
-    yieldStat: "1.15% / Day",
-    escrow: "Deep Offline Gold Storage",
-    image: "https://picsum.photos/seed/cyber-archon/1024/1024",
-    features: [
-      "Sovereign Core High-Tier Co-Mining",
-      "Uncapped Protocol Leveraged Farming",
-      "Special Elite Alpha Chat Gateways",
-      "Early Access to Future Platform Mints",
-      "Interactive 1-on-1 Portfolio Mentorship",
-      "Heirloom Titanium Core Physical Tag"
-    ]
-  }
-];
-
-// Showcase items
-const SHOWCASE_NFTS = [
-  {
-    id: 1,
-    name: "AXON Cybernetic Core #108",
-    price: "0.88 BNB",
-    tier: "Archon",
-    rarity: "Legendary",
-    image: "https://picsum.photos/seed/cyber-core/1024/1024"
-  },
-  {
-    id: 2,
-    name: "Neon Sovereign Helm v2",
-    price: "0.42 BNB",
-    tier: "Sentinel",
-    rarity: "Epic",
-    image: "https://picsum.photos/seed/cyber-helm/1024/1024"
-  },
-  {
-    id: 3,
-    name: "Starlight Decryptor Block",
-    price: "0.19 BNB",
-    tier: "Starter",
-    rarity: "Rare",
-    image: "https://picsum.photos/seed/cyber-decryptor/1024/1024"
-  },
-  {
-    id: 4,
-    name: "Liquid Gold Matrix Cell",
-    price: "1.50 BNB",
-    tier: "Archon",
-    rarity: "Mythic",
-    image: "https://picsum.photos/seed/liquid-gold/1024/1024"
-  }
-];
 
 // Tech stack / Features
 const TECH_FEATURES = [
@@ -242,7 +136,6 @@ export default function Home() {
   // Prevent Next.js hydration anomalies
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMounted(true);
     });
     return () => {
@@ -263,7 +156,7 @@ export default function Home() {
   useEffect(() => {
     if (!autoplay) return;
     const interval = setInterval(() => {
-      setActivePlanIdx((prev) => (prev + 1) % PLANS.length);
+      setActivePlanIdx((prev) => (prev + 1) % 3);
     }, 6000);
     return () => clearInterval(interval);
   }, [autoplay]);
@@ -299,54 +192,6 @@ export default function Home() {
       setWhitelistSuccess(true);
       setEmailInput("");
     }, 1500);
-  };
-
-  // Slider controls
-  const handleNextSlide = () => {
-    setAutoplay(false);
-    setActivePlanIdx((prev) => (prev + 1) % PLANS.length);
-  };
-
-  const handlePrevSlide = () => {
-    setAutoplay(false);
-    setActivePlanIdx((prev) => (prev - 1 + PLANS.length) % PLANS.length);
-  };
-
-  // Simple Touch/Mouse Drag Event Bindings for the Plan Carousel
-  const handleMouseDown = (e: React.MouseEvent) => {
-    startX.current = e.pageX;
-    isDragging.current = true;
-    setAutoplay(false);
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    const diff = e.pageX - startX.current;
-    if (diff > 50) {
-      // Swiped right
-      setActivePlanIdx((prev) => (prev - 1 + PLANS.length) % PLANS.length);
-    } else if (diff < -50) {
-      // Swiped left
-      setActivePlanIdx((prev) => (prev + 1) % PLANS.length);
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].pageX;
-    isDragging.current = true;
-    setAutoplay(false);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    const diff = e.changedTouches[0].pageX - startX.current;
-    if (diff > 50) {
-      setActivePlanIdx((prev) => (prev - 1 + PLANS.length) % PLANS.length);
-    } else if (diff < -50) {
-      setActivePlanIdx((prev) => (prev + 1) % PLANS.length);
-    }
   };
 
   if (!mounted) {
@@ -569,186 +414,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. PLANS / OFFERS SLIDER (CRITICAL CONTAINER - UNDER HERO) */}
-      <section id="axon-plans" className="py-24 border-t border-white/5 bg-[#09090C] relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A0A0E] to-transparent pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          
-          {/* Section Heading */}
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-[10px] text-[#00FFB2] tracking-[0.3em] font-black uppercase block mb-3">AUTOMATED INVESTMENT ARRAYS</span>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-4">
-              Explore Yield Smart Catalogs
-            </h2>
-            <p className="text-sm text-zinc-400">
-              Select an Apple-level precision-driven NFT stake catalog below. Swipe, drag, or toggle arrows. Center card is actively focused with elevated yield returns.
-            </p>
-          </div>
-
-          {/* Interactive Sliding Carousel Container */}
-          <div className="relative overflow-visible py-8 px-4 flex flex-col items-center">
-            
-            {/* Nav Arrows */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-10 z-30">
-              <button
-                onClick={handlePrevSlide}
-                className="w-12 h-12 rounded-full border border-white/10 bg-black/60 hover:bg-black/90 text-white flex items-center justify-center hover:border-[#00FFB2]/50 hover:text-[#00FFB2] active:scale-90 transition shadow-lg backdrop-blur-md"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-10 z-30">
-              <button
-                onClick={handleNextSlide}
-                className="w-12 h-12 rounded-full border border-white/10 bg-black/60 hover:bg-black/90 text-white flex items-center justify-center hover:border-[#00FFB2]/50 hover:text-[#00FFB2] active:scale-90 transition shadow-lg backdrop-blur-md"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Slider cards queue */}
-            <div
-              ref={sliderRef}
-              onMouseDown={handleMouseDown}
-              onMouseUp={handleMouseUp}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              className="flex justify-center items-center gap-4 md:gap-8 w-full max-w-5xl h-[520px] md:h-[600px] select-none cursor-grab active:cursor-grabbing transition-all duration-500 overflow-hidden"
-            >
-              <AnimatePresence mode="popLayout" initial={false}>
-                {PLANS.map((plan, index) => {
-                  const isActive = index === activePlanIdx;
-                  // Dynamic distances
-                  const distance = index - activePlanIdx;
-
-                  // CSS scale, opacity and styling based on active focus indices
-                  let scaleClass = "scale-90 opacity-40 blur-[2px] z-10 pointer-events-none max-w-[280px] hidden sm:block md:max-w-[310px]";
-                  let shadowClass = "border border-white/5 bg-[#121215]/30 shadow-none";
-
-                  if (isActive) {
-                    scaleClass = "scale-[1.02] sm:scale-[1.05] md:scale-108 opacity-100 blur-none z-20 w-full max-w-[340px] md:max-w-[380px]";
-                    shadowClass = "border-2 border-[#00FFB2]/60 bg-[#141419]/90 shadow-[0_15px_60px_rgba(0,255,178,0.25)] relative";
-                  } else if (distance === -1 || (activePlanIdx === 0 && index === PLANS.length - 1)) {
-                    scaleClass = "scale-90 opacity-55 blur-[1px] z-10 w-1/4 max-w-[280px] md:max-w-[310px] hidden sm:block pointer-events-auto transform -translate-x-4";
-                    shadowClass = "border border-white/5 bg-[#121215]/40";
-                  } else if (distance === 1 || (activePlanIdx === PLANS.length - 1 && index === 0)) {
-                    scaleClass = "scale-90 opacity-55 blur-[1px] z-10 w-1/4 max-w-[280px] md:max-w-[310px] hidden sm:block pointer-events-auto transform translate-x-4";
-                    shadowClass = "border border-white/5 bg-[#121215]/40";
-                  }
-
-                  return (
-                    <div
-                      key={plan.id}
-                      onClick={() => {
-                        if (!isActive) {
-                          setAutoplay(false);
-                          setActivePlanIdx(index);
-                        }
-                      }}
-                      className={`${scaleClass} transition-all duration-700 h-[460px] md:h-[530px] rounded-[2.5rem] flex flex-col overflow-hidden`}
-                    >
-                      <div className={`h-full p-4 md:p-6 ${shadowClass} flex flex-col justify-between rounded-[2.5rem] backdrop-blur-2xl transition`}>
-                        
-                        {/* Custom Neon border active indicator */}
-                        {isActive && (
-                          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#00FFB2] to-transparent" />
-                        )}
-
-                        <div className="space-y-4">
-                          {/* Card Image stacked at top */}
-                          <div className="relative w-full aspect-[21/10] sm:aspect-video rounded-3xl overflow-hidden border border-white/5">
-                            <Image
-                              src={plan.image}
-                              alt={plan.name}
-                              fill
-                              className="object-cover"
-                              referrerPolicy="no-referrer"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                            
-                            {/* Overlay Plan Badging */}
-                            <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-                              <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${plan.badgeColor}`}>
-                                {plan.badge}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Content bottom */}
-                          <div>
-                            <div className="flex justify-between items-baseline mb-1">
-                              <h3 className="text-lg md:text-xl font-black text-white">{plan.name}</h3>
-                              <span className="text-[10px] font-mono text-zinc-500 font-bold uppercase">Rate</span>
-                            </div>
-                            
-                            <div className="flex justify-between items-center mb-3">
-                              <span className="font-mono text-xl font-bold text-[#D4AF37]">{plan.price}</span>
-                              <span className="text-sm font-bold text-[#00FFB2] tracking-tight">{plan.roi}</span>
-                            </div>
-
-                            <p className="text-[10px] text-zinc-500 font-bold uppercase mb-2">INTEGRATED FEATURES</p>
-                            <ul className="space-y-1 md:space-y-1.5 text-xs text-zinc-300 font-medium">
-                              {plan.features.slice(0, 4).map((feature, fIdx) => (
-                                <li key={fIdx} className="flex items-center gap-1.5 truncate">
-                                  <Check className="w-3 h-3 text-[#00FFB2] flex-shrink-0" />
-                                  <span>{feature}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Staking CTA Trigger button */}
-                        <div className="mt-4 pt-3 border-t border-white/5">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              alert(`Initializing claim protocol nodes for ${plan.name}. Please secure registration credentials below!`);
-                              const elem = document.getElementById("axon-execution");
-                              if (elem) elem.scrollIntoView({ behavior: "smooth" });
-                            }}
-                            className={`w-full py-3 rounded-full font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${
-                              isActive
-                                ? "bg-gradient-to-r from-[#00FFB2] to-[#04D194] text-black shadow-[0_0_15px_rgba(0,255,178,0.3)] hover:scale-[1.02]"
-                                : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
-                            }`}
-                          >
-                            <span>Get {plan.name.split(" ")[0]}</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-
-                      </div>
-                    </div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-
-            {/* Slider Dots indicators */}
-            <div className="flex items-center gap-2 mt-8 z-20">
-              {PLANS.map((_, dotIdx) => (
-                <button
-                  key={dotIdx}
-                  onClick={() => {
-                    setAutoplay(false);
-                    setActivePlanIdx(dotIdx);
-                  }}
-                  className={`h-2.5 rounded-full transition-all duration-500 ${
-                    dotIdx === activePlanIdx
-                      ? "w-8 bg-[#00FFB2] shadow-[0_0_8px_#00FFB2]"
-                      : "w-2.5 bg-zinc-700 hover:bg-zinc-500"
-                  }`}
-                  aria-label={`Slide target ${dotIdx + 1}`}
-                />
-              ))}
-            </div>
-
-          </div>
-
-        </div>
-      </section>
+      <PlanSlider />
 
       {/* 3. ABOUT / WHAT IS AXON DIGITAL NETWORKS */}
       <section id="axon-about" className="py-24 relative overflow-hidden">
@@ -862,77 +528,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. NFT SHOWCASE SECTION */}
-      <section id="axon-showcase" className="py-24 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          
-          <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-16 gap-6 select-none">
-            <div className="text-left">
-              <span className="text-[10px] text-[#00FFB2] tracking-[0.3em] font-black uppercase block mb-3">LIMITED APEX COLLECTION</span>
-              <h2 className="text-3xl sm:text-5xl font-black text-white">Sovereign NFT Artifacts</h2>
-              <p className="text-sm text-zinc-400 mt-2 max-w-xl">
-                Holding AXON collection assets guarantees high hardware co-mining allocations and immediate yield multipliers. Explore rare digital assets.
-              </p>
-            </div>
-            
-            <a
-              href="#axon-execution"
-              className="px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 text-white font-extrabold text-xs uppercase tracking-widest border border-white/10 hover:border-[#00FFB2]/50 transition flex items-center gap-2"
-            >
-              Ecosystem Setup <Sparkles className="w-4 h-4 text-[#00FFB2]" />
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {SHOWCASE_NFTS.map((nft) => (
-              <div
-                key={nft.id}
-                className="rounded-[2.2rem] bg-[#121215] border border-white/5 p-4 hover:border-[#D4AF37]/40 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_15px_40px_rgba(212,175,55,0.08)] flex flex-col justify-between group/nft"
-              >
-                <div className="relative w-full aspect-square rounded-[1.8rem] overflow-hidden border border-white/5 mb-4">
-                  <Image
-                    src={nft.image}
-                    alt={nft.name}
-                    fill
-                    className="object-cover group-hover/nft:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  
-                  {/* Overlay tags */}
-                  <div className="absolute top-3 left-3 flex justify-between w-[calc(100%-24px)] pointer-events-none">
-                    <span className="px-2.5 py-0.5 rounded-full bg-black/70 text-white text-[8px] font-bold uppercase tracking-wider backdrop-blur-md">
-                      {nft.rarity}
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-[8px] font-black uppercase tracking-wider backdrop-blur-md border border-[#D4AF37]/30">
-                      {nft.tier}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="text-base font-extrabold text-zinc-100 uppercase truncate">{nft.name}</h3>
-                  <div className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
-                    <div>
-                      <span className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold block">Current Floor</span>
-                      <span className="font-mono text-xs font-bold text-white">{nft.price}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        alert(`AXON direct catalog access to ${nft.name} will be deployed on whitelist activation.`);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#B8942E] text-black font-extrabold text-[9px] uppercase tracking-wider transition-colors"
-                    >
-                      Instant Bid
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
+      <NFTShowcase />
 
       {/* 6. HOW IT WORKS SYSTEM */}
       <section id="axon-execution" className="py-24 bg-[#09090C] border-t border-b border-white/5 relative">
@@ -992,46 +588,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 7. LIVE STATISTICS BLOCK (Animated incremental state ticks) */}
-      <section id="axon-stats" className="py-20 relative overflow-hidden select-none bg-gradient-to-r from-zinc-950/80 via-black to-zinc-950/80">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left divide-y md:divide-y-0 md:divide-x divide-white/5">
-            
-            <div className="py-6 md:py-0 md:px-8 space-y-1">
-              <span className="text-[10px] tracking-widest uppercase text-zinc-500 font-bold block">TOTAL LIVE NFTs MINTED</span>
-              <div className="text-4xl md:text-5xl font-black text-white font-mono flex items-center justify-center md:justify-start gap-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FFB2] to-teal-400">
-                  {mintedCount.toLocaleString()}
-                </span>
-                <span className="text-xs font-bold text-zinc-600">/ 15,000</span>
-              </div>
-              <p className="text-[11px] text-zinc-500 font-medium">92.4% Genesis catalogs fully deployed</p>
-            </div>
-
-            <div className="py-6 md:py-0 md:px-8 space-y-1">
-              <span className="text-[10px] tracking-widest uppercase text-zinc-500 font-bold block">ACTIVE GLOBAL NODE STAKERS</span>
-              <div className="text-4xl md:text-5xl font-black text-white font-mono">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-amber-200">
-                  {activeUsers.toLocaleString()}
-                </span>
-              </div>
-              <p className="text-[11px] text-[#00FFB2] font-semibold flex items-center justify-center md:justify-start gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00FFB2] animate-ping" />
-                Live Consensus Active
-              </p>
-            </div>
-
-            <div className="py-6 md:py-0 md:px-8 space-y-1">
-              <span className="text-[10px] tracking-widest uppercase text-zinc-500 font-bold block">DAILY SOVEREIGN YIELDS SETTLED</span>
-              <div className="text-4xl md:text-5xl font-black text-white font-mono">
-                <span className="text-white">${totalYieldUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              </div>
-              <p className="text-[11px] text-zinc-500 font-medium">Real-time payouts synced securely</p>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      <StatsSection />
 
       {/* 8. ROADMAP SECTION WITH EXPANDABLE PHASES */}
       <section id="axon-roadmap" className="py-24 relative overflow-hidden bg-[#09090C] border-t border-white/5">

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import {
   Activity,
@@ -20,7 +20,7 @@ export default function AdminAuditReplayPage() {
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
       .from('audit_logs')
@@ -29,11 +29,14 @@ export default function AdminAuditReplayPage() {
       .limit(100);
     
     setLogs(data || []);
-    if (data && data.length > 0 && !selectedLog) {
-      setSelectedLog(data[0]);
-    }
+    setSelectedLog((prev: any) => {
+      if (data && data.length > 0 && !prev) {
+        return data[0];
+      }
+      return prev;
+    });
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchLogs();
@@ -43,7 +46,7 @@ export default function AdminAuditReplayPage() {
       .subscribe();
 
     return () => { supabase.removeChannel(sub); };
-  }, []);
+  }, [fetchLogs]);
 
   const handleExportCSV = () => {
     const headers = ["ID", "Time", "Admin", "Action", "Table", "IP"];
