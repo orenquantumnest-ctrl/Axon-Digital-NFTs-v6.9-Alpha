@@ -146,7 +146,7 @@ export default function AdminPlansPage() {
          <div className="absolute top-0 right-0 w-64 h-64 bg-[#00FFB2]/5 blur-[80px] rounded-full group-hover:bg-[#00FFB2]/10 transition-colors pointer-events-none"></div>
           <div className="w-full md:w-48 h-auto rounded-2xl overflow-hidden shadow-2xl flex-shrink-0 border border-white/10 relative">
             <Image 
-              src="/free-nft-plan.jpeg" 
+              src="/free-nft-plan.png" 
               alt="Free NFT Plan" 
               width={192} 
               height={192} 
